@@ -8,11 +8,12 @@ import java.util.HashMap;
 class Languages {
     private static Languages ourInstance;
 
-    static Languages getInstance(Context context) {
-        if (ourInstance == null){
-            ourInstance = new Languages(context);
-        }
+    static Languages getInstance() {
         return ourInstance;
+    }
+
+    public static void setContext(Context context){
+        ourInstance = new Languages(context);
     }
 
     // Language names and codes.
@@ -33,7 +34,11 @@ class Languages {
     /**
      * @return set of language names
      */
-    Object[] getLanguageNames(){
+    static Object[] getLanguageNames(){
         return languages.keySet().toArray();
+    }
+
+    static String getCodeByName(String name){
+        return languages.get(name);
     }
 }

@@ -1,9 +1,15 @@
 <resources>
     <string name="app_name">Переводчик</string>
 
-    <string name="yandex_translate">trnsl.1.1.20170414T131406Z.4bd8303ec229922b.266e6ec4b7b55d08e21c70c7ed1a0c004cd3bca7</string>
-
     <string name="swap">swap</string>
+    <string name="save_phrase">savePhrase</string>
+    <string name="too_many_requests_error">Превышено суточное ограничение на объем переведенного текста. Попробуйте выполнить перевод прозже.</string>
+    <string name="api_key_error">Ошибка API ключа</string>
+    <string name="request_entity_too_large_error">Превышен максимально допустимый размер текста. Введите текст меньшей длинны.</string>
+    <string name="text_can_not_be_translated_error">Текст не может быть переведен.</string>
+    <string name="specified_translation_direction_is_not_supported_error">Заданное направление перевода не поддерживается</string>
+    <string name="response_data_error">Ошибка в полученных данных</string>
+    <string name="connection_error">Ошибка соединения</string>
 
     <string-array name="langs">
         <item>азербайджанский|az</item>	        <item>мальтийский|mt</item>
