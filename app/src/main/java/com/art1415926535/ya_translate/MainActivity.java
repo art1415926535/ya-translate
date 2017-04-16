@@ -12,8 +12,7 @@ import android.support.v7.app.AppCompatActivity;
 
 public class MainActivity extends AppCompatActivity
         implements TranslatorFragment.OnFragmentInteractionListener,
-        FavoritesFragment.OnFragmentInteractionListener,
-        HistoryFragment.OnFragmentInteractionListener{
+        FavoritesFragment.OnFragmentInteractionListener{
 
     /**
      * The {@link android.support.v4.view.PagerAdapter} that will provide
@@ -73,8 +72,6 @@ public class MainActivity extends AppCompatActivity
                     return TranslatorFragment.newInstance();
                 case 1:
                     return FavoritesFragment.newInstance();
-                case 2:
-                    return HistoryFragment.newInstance();
                 default:
                     throw new RuntimeException("Strange tab position");
             }
@@ -82,8 +79,8 @@ public class MainActivity extends AppCompatActivity
 
         @Override
         public int getCount() {
-            // Show 3 total pages.
-            return 3;
+            // Show 2 total pages.
+            return 2;
         }
 
         @Override
@@ -93,8 +90,6 @@ public class MainActivity extends AppCompatActivity
                     return "Переводчик";
                 case 1:
                     return "Избранное";
-                case 2:
-                    return "История";
             }
             return null;
         }
