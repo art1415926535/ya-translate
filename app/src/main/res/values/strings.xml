@@ -10,6 +10,8 @@
     <string name="specified_translation_direction_is_not_supported_error">Заданное направление перевода не поддерживается</string>
     <string name="response_data_error">Ошибка в полученных данных</string>
     <string name="connection_error">Ошибка соединения</string>
+    <string name="clear">clear</string>
+    <string name="play">play</string>
 
     <string-array name="langs">
         <item>азербайджанский|az</item>	        <item>мальтийский|mt</item>

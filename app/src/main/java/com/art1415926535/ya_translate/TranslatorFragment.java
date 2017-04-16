@@ -6,6 +6,8 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.support.constraint.ConstraintLayout;
 import android.support.v4.app.Fragment;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.TypedValue;
@@ -39,7 +41,13 @@ public class TranslatorFragment extends Fragment
     private EditText editText;
     private TextView translatedText;
     private ConstraintLayout translatedTextConstraintLayout;
+    private RecyclerView historyRecyclerView;
+    private HistoryRecyclerAdapter historyRecyclerAdapter;
+    private RecyclerView.LayoutManager recyclerLayoutManager;
+
     private static long lastTranslateRequest = 0;
+    private static long lastTextChangedTime = 0;
+    private boolean textTranslated = true;
 
     public TranslatorFragment() {
         // Required empty public constructor
@@ -94,14 +102,10 @@ public class TranslatorFragment extends Fragment
         editText = (EditText)view.findViewById(R.id.editText);
         editText.addTextChangedListener(new TextWatcher() {
             @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-
-            }
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
 
             @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) {
-
-            }
+            public void onTextChanged(CharSequence s, int start, int before, int count) {}
 
             @Override
             public void afterTextChanged(Editable s) {
@@ -110,8 +114,10 @@ public class TranslatorFragment extends Fragment
 
                 if (len == 0 && translatedTextConstraintLayout.getVisibility() == View.VISIBLE){
                     translatedTextConstraintLayout.setVisibility(View.GONE);
+                    historyRecyclerView.setVisibility(View.VISIBLE);
                 }else if (len > 0 && translatedTextConstraintLayout.getVisibility() == View.GONE){
                     translatedTextConstraintLayout.setVisibility(View.VISIBLE);
+                    historyRecyclerView.setVisibility(View.GONE);
                 }
 
                 if (len < 60){
@@ -124,15 +130,70 @@ public class TranslatorFragment extends Fragment
                     editText.setTextSize(TypedValue.COMPLEX_UNIT_SP, 15);
                 }
 
-//                if (System.currentTimeMillis() - lastTranslateRequest > 1000) {
-                    updateTranslate();
-//                }
+                textTranslated = false;
+                lastTextChangedTime = System.currentTimeMillis();
+
             }
         });
 
         translatedText = (TextView) view.findViewById(R.id.translatedText);
 
+        // Recycler View with history requests.
+        historyRecyclerView = (RecyclerView) view.findViewById(R.id.historyRecycler);
+        historyRecyclerView.setHasFixedSize(false);
+
+        // Use a linear layout manager.
+        recyclerLayoutManager = new LinearLayoutManager(view.getContext());
+        historyRecyclerView.setLayoutManager(recyclerLayoutManager);
+
+        // Set adapter with history data.
+        historyRecyclerAdapter = new HistoryRecyclerAdapter(view.getContext(),
+                new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        TextView topLang = (TextView) v.findViewById(R.id.topLang);
+                        TextView bottomLang = (TextView) v.findViewById(R.id.bottomLang);
+
+                        TextView fromText = (TextView) v.findViewById(R.id.fromText);
+                        TextView toText = (TextView) v.findViewById(R.id.toText);
+
+                        leftLang.setText(Languages.getNameByCode(
+                                topLang.getText().toString().toLowerCase()));
+                        rightLang.setText(Languages.getNameByCode(
+                                bottomLang.getText().toString().toLowerCase()));
+
+                        editText.setText(fromText.getText().toString());
+                        translatedText.setText(toText.getText().toString());
+                    }
+                });
+        historyRecyclerView.setAdapter(historyRecyclerAdapter);
+
+        runTextTranslateWatcher();
+
         return view;
+    }
+
+    /**
+     * Send an update request if there were no text changes for the last two seconds.
+     */
+    private void runTextTranslateWatcher() {
+        final Handler handler = new Handler();
+        Runnable runnable = new Runnable() {
+            public void run() {
+                while (true) {
+                    if ((System.currentTimeMillis() - lastTextChangedTime > 2000) && !textTranslated) {
+                        textTranslated = true;
+                        handler.post(new Runnable() {
+                            @Override
+                            public void run() {
+                                updateTranslate();
+                            }
+                        });
+                    }
+                }
+            }
+        };
+        new Thread(runnable).start();
     }
 
     /**
@@ -198,8 +259,17 @@ public class TranslatorFragment extends Fragment
         switch (code){
             case 200:
                 try {
-                    translatedText.setText((String) response.getJSONArray("text").get(0));
-                }catch (JSONException e){
+                    String newTranslatedText = (String) response.getJSONArray("text").get(0);
+                    translatedText.setText(newTranslatedText);
+
+                    historyRecyclerAdapter.addItem(
+                            Languages.getCodeByName(leftLang.getText().toString()),
+                            editText.getText().toString(),
+                            Languages.getCodeByName(rightLang.getText().toString()),
+                            translatedText.getText().toString()
+                    );
+
+                } catch (JSONException e){
                     Toast.makeText(getContext(), R.string.response_data_error,
                             Toast.LENGTH_SHORT).show();
                 }

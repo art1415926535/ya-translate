@@ -3,6 +3,7 @@ package com.art1415926535.ya_translate;
 import android.content.Context;
 
 import java.util.HashMap;
+import java.util.Map;
 
 
 class Languages {
@@ -40,5 +41,14 @@ class Languages {
 
     static String getCodeByName(String name){
         return languages.get(name);
+    }
+
+    static String getNameByCode(String code){
+        for (Map.Entry<String, String> entry : languages.entrySet()) {
+            if (entry.getValue().equals(code)){
+                return entry.getKey();
+            }
+        }
+        return "";
     }
 }
