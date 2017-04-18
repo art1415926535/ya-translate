@@ -12,52 +12,98 @@
     <string name="connection_error">Ошибка соединения</string>
     <string name="clear">clear</string>
     <string name="play">play</string>
+    <string name="history">Ранее переведенные</string>
 
     <string-array name="langs">
-        <item>азербайджанский|az</item>	        <item>мальтийский|mt</item>
-        <item>албанский|sq</item>	            <item>македонский|mk</item>
-        <item>амхарский|am</item>	            <item>маори|mi</item>
-        <item>английский|en</item>	            <item>маратхи|mr</item>
-        <item>арабский|ar</item>	            <item>марийский|mhr</item>
-        <item>армянский|hy</item>	            <item>монгольский|mn</item>
-        <item>африкаанс|af</item>	            <item>немецкий|de</item>
-        <item>баскский|eu</item>	            <item>непальский|ne</item>
-        <item>башкирский|ba</item>	            <item>норвежский|no</item>
-        <item>белорусский|be</item>	            <item>панджаби|pa</item>
-        <item>бенгальский|bn</item>	            <item>папьяменто|pap</item>
-        <item>болгарский|bg</item>	            <item>персидский|fa</item>
-        <item>боснийский|bs</item>	            <item>польский|pl</item>
-        <item>валлийский|cy</item>	            <item>португальский|pt</item>
-        <item>венгерский|hu</item>	            <item>румынский|ro</item>
-        <item>вьетнамский|vi</item>	            <item>русский|ru</item>
-        <item>гаитянский (креольский)|ht</item>	<item>себуанский|ceb</item>
-        <item>галисийский|gl</item>	            <item>сербский|sr</item>
-        <item>голландский|nl</item>	            <item>сингальский|si</item>
-        <item>горномарийский|mrj</item>         <item>словацкий|sk</item>
-        <item>греческий|el</item>	            <item>словенский|sl</item>
-        <item>грузинский|ka</item>	            <item>суахили|sw</item>
-        <item>гуджарати|gu</item>	            <item>сунданский|su</item>
-        <item>датский|da</item>	                <item>таджикский|tg</item>
-        <item>иврит|he</item>	                <item>тайский|th</item>
-        <item>идиш|yi</item>	                <item>тагальский|tl</item>
-        <item>индонезийский|id</item>	        <item>тамильский|ta</item>
-        <item>ирландский|ga</item>	            <item>татарский|tt</item>
-        <item>итальянский|it</item>	            <item>телугу|te</item>
-        <item>исландский|is</item>	            <item>турецкий|tr</item>
-        <item>испанский|es</item>	            <item>удмуртский|udm</item>
-        <item>казахский|kk</item>	            <item>узбекский|uz</item>
-        <item>каннада|kn</item>	                <item>украинский|uk</item>
-        <item>каталанский|ca</item>	            <item>урду|ur</item>
-        <item>киргизский|ky</item>	            <item>финский|fi</item>
-        <item>китайский|zh</item>	            <item>французский|fr</item>
-        <item>корейский|ko</item>	            <item>хинди|hi</item>
-        <item>коса|xh</item>	                <item>хорватский|hr</item>
-        <item>латынь|la</item>	                <item>чешский|cs</item>
-        <item>латышский|lv</item>	            <item>шведский|sv</item>
-        <item>литовский|lt</item>	            <item>шотландский|gd</item>
-        <item>люксембургский|lb</item>	        <item>эстонский|et</item>
-        <item>малагасийский|mg</item>	        <item>эсперанто|eo</item>
-        <item>малайский|ms</item>	            <item>яванский|jv</item>
-        <item>малаялам|ml</item>	            <item>японский|ja</item>
+        <item>азербайджанский|az</item>
+        <item>мальтийский|mt</item>
+        <item>албанский|sq</item>
+        <item>македонский|mk</item>
+        <item>амхарский|am</item>
+        <item>маори|mi</item>
+        <item>английский|en</item>
+        <item>маратхи|mr</item>
+        <item>арабский|ar</item>
+        <item>марийский|mhr</item>
+        <item>армянский|hy</item>
+        <item>монгольский|mn</item>
+        <item>африкаанс|af</item>
+        <item>немецкий|de</item>
+        <item>баскский|eu</item>
+        <item>непальский|ne</item>
+        <item>башкирский|ba</item>
+        <item>норвежский|no</item>
+        <item>белорусский|be</item>
+        <item>панджаби|pa</item>
+        <item>бенгальский|bn</item>
+        <item>папьяменто|pap</item>
+        <item>болгарский|bg</item>
+        <item>персидский|fa</item>
+        <item>боснийский|bs</item>
+        <item>польский|pl</item>
+        <item>валлийский|cy</item>
+        <item>португальский|pt</item>
+        <item>венгерский|hu</item>
+        <item>румынский|ro</item>
+        <item>вьетнамский|vi</item>
+        <item>русский|ru</item>
+        <item>гаитянский (креольский)|ht</item>
+        <item>себуанский|ceb</item>
+        <item>галисийский|gl</item>
+        <item>сербский|sr</item>
+        <item>голландский|nl</item>
+        <item>сингальский|si</item>
+        <item>горномарийский|mrj</item>
+        <item>словацкий|sk</item>
+        <item>греческий|el</item>
+        <item>словенский|sl</item>
+        <item>грузинский|ka</item>
+        <item>суахили|sw</item>
+        <item>гуджарати|gu</item>
+        <item>сунданский|su</item>
+        <item>датский|da</item>
+        <item>таджикский|tg</item>
+        <item>иврит|he</item>
+        <item>тайский|th</item>
+        <item>идиш|yi</item>
+        <item>тагальский|tl</item>
+        <item>индонезийский|id</item>
+        <item>тамильский|ta</item>
+        <item>ирландский|ga</item>
+        <item>татарский|tt</item>
+        <item>итальянский|it</item>
+        <item>телугу|te</item>
+        <item>исландский|is</item>
+        <item>турецкий|tr</item>
+        <item>испанский|es</item>
+        <item>удмуртский|udm</item>
+        <item>казахский|kk</item>
+        <item>узбекский|uz</item>
+        <item>каннада|kn</item>
+        <item>украинский|uk</item>
+        <item>каталанский|ca</item>
+        <item>урду|ur</item>
+        <item>киргизский|ky</item>
+        <item>финский|fi</item>
+        <item>китайский|zh</item>
+        <item>французский|fr</item>
+        <item>корейский|ko</item>
+        <item>хинди|hi</item>
+        <item>коса|xh</item>
+        <item>хорватский|hr</item>
+        <item>латынь|la</item>
+        <item>чешский|cs</item>
+        <item>латышский|lv</item>
+        <item>шведский|sv</item>
+        <item>литовский|lt</item>
+        <item>шотландский|gd</item>
+        <item>люксембургский|lb</item>
+        <item>эстонский|et</item>
+        <item>малагасийский|mg</item>
+        <item>эсперанто|eo</item>
+        <item>малайский|ms</item>
+        <item>яванский|jv</item>
+        <item>малаялам|ml</item>
+        <item>японский|ja</item>
     </string-array>
 </resources>

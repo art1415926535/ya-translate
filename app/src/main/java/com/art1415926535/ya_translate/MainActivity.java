@@ -1,97 +1,349 @@
 package com.art1415926535.ya_translate;
 
-import android.net.Uri;
+import android.content.Intent;
 import android.os.Bundle;
-import android.support.design.widget.TabLayout;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentPagerAdapter;
-import android.support.v4.view.ViewPager;
+import android.os.Handler;
+import android.support.constraint.ConstraintLayout;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.Toolbar;
+import android.text.Editable;
+import android.text.TextWatcher;
+import android.text.method.ScrollingMovementMethod;
+import android.util.TypedValue;
+import android.view.View;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
+import android.widget.EditText;
+import android.widget.ImageButton;
+import android.widget.TextView;
+import android.widget.Toast;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 
 
-public class MainActivity extends AppCompatActivity
-        implements TranslatorFragment.OnFragmentInteractionListener,
-        FavoritesFragment.OnFragmentInteractionListener{
+public class MainActivity extends AppCompatActivity implements View.OnClickListener{
+    private TextView leftLang;
+    private TextView rightLang;
+    private EditText editText;
+    private TextView translatedText;
+    private ConstraintLayout translatedTextConstraintLayout;
+    private RecyclerView historyRecyclerView;
+    private HistoryRecyclerAdapter historyRecyclerAdapter;
+    private RecyclerView.LayoutManager recyclerLayoutManager;
 
-    /**
-     * The {@link android.support.v4.view.PagerAdapter} that will provide
-     * fragments for each of the sections. We use a
-     * {@link FragmentPagerAdapter} derivative, which will keep every
-     * loaded fragment in memory. If this becomes too memory intensive, it
-     * may be best to switch to a
-     * {@link android.support.v4.app.FragmentStatePagerAdapter}.
-     */
-    private SectionsPagerAdapter mSectionsPagerAdapter;
-
-    /**
-     * The {@link ViewPager} that will host the section contents.
-     */
-    private ViewPager mViewPager;
+    private static long lastTranslateRequest = 0;
+    private static long lastTextChangedTime = 0;
+    private boolean textTranslated = true;
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+        setContentView(R.layout.fragment_translator);
 
-        // Set context for class Languages for load all languages from resources.
-        Languages.setContext(getApplicationContext());
+        Languages.setContext(this);
 
-        mSectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager());
+        leftLang = (TextView) findViewById(R.id.leftLang);
+        rightLang = (TextView) findViewById(R.id.rightLang);
 
-        // Set up the ViewPager with the sections adapter.
-        mViewPager = (ViewPager) findViewById(R.id.container);
-        mViewPager.setAdapter(mSectionsPagerAdapter);
+        translatedTextConstraintLayout = (ConstraintLayout) findViewById(
+                R.id.translatedTextConstraintLayout);
 
-        TabLayout tabLayout = (TabLayout) findViewById(R.id.tabs);
-        tabLayout.setupWithViewPager(mViewPager);
+        ImageButton swapLangs = (ImageButton) findViewById(R.id.swapLangs);
+        ImageButton playEditText = (ImageButton) findViewById(R.id.playEditText);
+        ImageButton clearEditText = (ImageButton) findViewById(R.id.clearEditText);
+
+        swapLangs.setOnClickListener(this);
+        playEditText.setOnClickListener(this);
+        clearEditText.setOnClickListener(this);
+
+        leftLang.setText("русский");
+        rightLang.setText("английский");
+
+        editText = (EditText) findViewById(R.id.editText);
+        editText.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {}
+
+            @Override
+            public void afterTextChanged(Editable s) {
+
+                int len = s.toString().length();
+
+                if (len == 0 && translatedTextConstraintLayout.getVisibility() == View.VISIBLE){
+                    translatedTextConstraintLayout.setVisibility(View.GONE);
+                    historyRecyclerView.setVisibility(View.VISIBLE);
+                }else if (len > 0 && translatedTextConstraintLayout.getVisibility() == View.GONE){
+                    translatedTextConstraintLayout.setVisibility(View.VISIBLE);
+                    historyRecyclerView.setVisibility(View.GONE);
+                }
+
+                if (len < 60){
+                    editText.setTextSize(TypedValue.COMPLEX_UNIT_SP, 30);
+                }else if (len < 100){
+                    editText.setTextSize(TypedValue.COMPLEX_UNIT_SP, 25);
+                }else if (len < 160){
+                    editText.setTextSize(TypedValue.COMPLEX_UNIT_SP, 20);
+                }else{
+                    editText.setTextSize(TypedValue.COMPLEX_UNIT_SP, 15);
+                }
+
+                textTranslated = false;
+                lastTextChangedTime = System.currentTimeMillis();
+
+            }
+        });
+
+        translatedText = (TextView) findViewById(R.id.translatedText);
+        translatedText.setMovementMethod(new ScrollingMovementMethod());
+
+        // Recycler View with history requests.
+        historyRecyclerView = (RecyclerView) findViewById(R.id.historyRecycler);
+        historyRecyclerView.setHasFixedSize(false);
+
+        // Use a linear layout manager.
+        recyclerLayoutManager = new LinearLayoutManager(this);
+        historyRecyclerView.setLayoutManager(recyclerLayoutManager);
+
+        // Set adapter with history data.
+        historyRecyclerAdapter = new HistoryRecyclerAdapter(this,
+                new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        TextView topLang = (TextView) v.findViewById(R.id.topLang);
+                        TextView bottomLang = (TextView) v.findViewById(R.id.bottomLang);
+
+                        TextView fromText = (TextView) v.findViewById(R.id.fromText);
+                        TextView toText = (TextView) v.findViewById(R.id.toText);
+
+                        leftLang.setText(Languages.getNameByCode(
+                                topLang.getText().toString().toLowerCase()));
+                        rightLang.setText(Languages.getNameByCode(
+                                bottomLang.getText().toString().toLowerCase()));
+
+                        editText.setText(fromText.getText().toString());
+                        translatedText.setText(toText.getText().toString());
+                    }
+                });
+        historyRecyclerView.setAdapter(historyRecyclerAdapter);
+
+        runTextTranslateWatcher();
+
+        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        toolbar.setTitle("Переводчик");
+
+//        Intent intent = new Intent(this, SavedPhrasesActivity.class);
+//        startActivityForResult(intent, 1);
     }
 
     @Override
-    public void onFragmentInteraction(Uri uri) {
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (data == null) {
+            return;
+        }
+        leftLang.setText(Languages.getNameByCode(data.getStringExtra("fromLangCode")));
+        rightLang.setText(Languages.getNameByCode(data.getStringExtra("toLangCode")));
 
+        editText.setText(data.getStringExtra("fromText"));
+        translatedText.setText(data.getStringExtra("toText"));
     }
 
     /**
-     * A {@link FragmentPagerAdapter} that returns a fragment corresponding to
-     * one of the sections/tabs/pages.
+     * Send an update request if there were no text changes for the last two seconds.
      */
-    private class SectionsPagerAdapter extends FragmentPagerAdapter {
-
-        SectionsPagerAdapter(FragmentManager fm) {
-            super(fm);
-        }
-
-        @Override
-        public Fragment getItem(int position) {
-            // getItem is called to instantiate the fragment for the given page.
-            // Return a PlaceholderFragment (defined as a static inner class below).
-
-            switch (position){
-                case 0:
-                    return TranslatorFragment.newInstance();
-                case 1:
-                    return FavoritesFragment.newInstance();
-                default:
-                    throw new RuntimeException("Strange tab position");
+    private void runTextTranslateWatcher() {
+        final Handler handler = new Handler();
+        Runnable runnable = new Runnable() {
+            public void run() {
+                while (true) {
+                    if ((System.currentTimeMillis() - lastTextChangedTime > 1500) && !textTranslated) {
+                        textTranslated = true;
+                        handler.post(new Runnable() {
+                            @Override
+                            public void run() {
+                                updateTranslate();
+                            }
+                        });
+                    }
+                }
             }
+        };
+        new Thread(runnable).start();
+    }
+
+    /**
+     * Translate text from editText and write to translatedText.
+     */
+    private void updateTranslate() {
+//        Toast.makeText(getApplicationContext(), "UPDATE",
+//                Toast.LENGTH_SHORT).show();
+        translatedText.setText("");
+
+        final String text = editText.getText().toString();
+        if (text.isEmpty()){
+            // Nothing to translate.
+            return;
         }
 
-        @Override
-        public int getCount() {
-            // Show 2 total pages.
-            return 2;
-        }
+        // Save last request time.
+        lastTranslateRequest = System.currentTimeMillis();
 
-        @Override
-        public CharSequence getPageTitle(int position) {
-            switch (position) {
-                case 0:
-                    return "Переводчик";
-                case 1:
-                    return "Избранное";
+        final long myTime = lastTranslateRequest;
+
+        final Handler handler = new Handler();
+        Runnable runnable = new Runnable() {
+            public void run() {
+
+                final JSONObject response = Translator.translateText(
+                        text, leftLang.getText().toString(), rightLang.getText().toString());
+
+                handler.post(new Runnable() {
+                    public void run() {
+                        // If this is NOT last request.
+                        if (myTime != lastTranslateRequest){
+                            return;
+                        }
+
+                        // Connection or JSON error.
+                        if (response == null) {
+                            Toast.makeText(getApplicationContext(), R.string.connection_error,
+                                    Toast.LENGTH_SHORT).show();
+                            return;
+                        }
+
+                        processResponseData(response, handler);
+                    }
+                });
             }
-            return null;
+        };
+        new Thread(runnable).start();
+    }
+
+    /**
+     * Parse data from response and upate translateText.
+     * @param response response from Translator.
+     * @param handler handler for update translateText.
+     */
+    private void processResponseData(final JSONObject response, Handler handler) {
+        int code;
+        try {
+            code = response.getInt("code");
+        } catch (JSONException e){
+            Toast.makeText(getApplicationContext(), R.string.response_data_error,
+                    Toast.LENGTH_SHORT).show();
+            return;
+        }
+        switch (code){
+            case 200:
+                try {
+                    String newTranslatedText = (String) response.getJSONArray("text").get(0);
+                    translatedText.setText(newTranslatedText);
+
+                    int len = newTranslatedText.length();
+                    if (len < 60){
+                        translatedText.setTextSize(TypedValue.COMPLEX_UNIT_SP, 30);
+                    }else if (len < 100){
+                        translatedText.setTextSize(TypedValue.COMPLEX_UNIT_SP, 25);
+                    }else if (len < 160){
+                        translatedText.setTextSize(TypedValue.COMPLEX_UNIT_SP, 20);
+                    }else{
+                        translatedText.setTextSize(TypedValue.COMPLEX_UNIT_SP, 15);
+                    }
+
+                    historyRecyclerAdapter.addItem(
+                            Languages.getCodeByName(leftLang.getText().toString()),
+                            editText.getText().toString(),
+                            Languages.getCodeByName(rightLang.getText().toString()),
+                            translatedText.getText().toString()
+                    );
+
+                } catch (JSONException e){
+                    Toast.makeText(getApplicationContext(), R.string.response_data_error,
+                            Toast.LENGTH_SHORT).show();
+                }
+                break;
+            case 401:
+            case 402:
+                Toast.makeText(getApplicationContext(), R.string.api_key_error,
+                        Toast.LENGTH_SHORT).show();
+                break;
+            case 404:
+                Toast.makeText(getApplicationContext(), R.string.too_many_requests_error,
+                        Toast.LENGTH_SHORT).show();
+                break;
+            case 413:
+                Toast.makeText(getApplicationContext(), R.string.request_entity_too_large_error,
+                        Toast.LENGTH_SHORT).show();
+                break;
+            case 422:
+                Toast.makeText(getApplicationContext(), R.string.text_can_not_be_translated_error,
+                        Toast.LENGTH_SHORT).show();
+                break;
+            case 501:
+            case 502:
+                Toast.makeText(getApplicationContext(),
+                        R.string.specified_translation_direction_is_not_supported_error,
+                        Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    @Override
+    public void onClick(View v) {
+        switch (v.getId()){
+            case R.id.swapLangs:
+                Animation toRight = AnimationUtils.loadAnimation(getApplicationContext(),
+                        R.anim.translate_to_right);
+                Animation toLeft = AnimationUtils.loadAnimation(getApplicationContext(),
+                        R.anim.translate_to_left);
+
+                toLeft.setAnimationListener(new Animation.AnimationListener() {
+                    @Override
+                    public void onAnimationStart(Animation animation) {
+
+                    }
+
+                    @Override
+                    public void onAnimationRepeat(Animation animation) {
+
+                    }
+
+                    @Override
+                    public void onAnimationEnd(Animation animation) {
+
+                        CharSequence left = leftLang.getText();
+                        leftLang.setText(rightLang.getText());
+                        rightLang.setText(left);
+
+                        updateTranslate();
+
+                        leftLang.startAnimation(AnimationUtils.loadAnimation(
+                                getApplicationContext(), R.anim.translate_back_to_right));
+                        rightLang.startAnimation(AnimationUtils.loadAnimation(
+                                getApplicationContext(), R.anim.translate_back_to_left));
+                    }
+                });
+
+                leftLang.startAnimation(toRight);
+                rightLang.startAnimation(toLeft);
+                break;
+
+            case R.id.playEditText:
+                Toast.makeText(getApplicationContext(), "Play", Toast.LENGTH_SHORT).show();
+                break;
+
+            case R.id.clearEditText:
+                translatedText.setText("");
+                editText.setText("");
+                editText.requestFocus();
+                break;
+
+            default:
+                break;
         }
     }
 }
