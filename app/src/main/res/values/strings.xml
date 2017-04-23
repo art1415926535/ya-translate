@@ -13,6 +13,9 @@
     <string name="clear">clear</string>
     <string name="play">play</string>
     <string name="history">Ранее переведенные</string>
+    <string name="auto_select_language">автовыбор</string>
+    <string name="select_language">Выберите язык</string>
+    <string name="dismiss">Отмена</string>
 
     <string-array name="langs">
         <item>азербайджанский|az</item>

@@ -8,6 +8,8 @@ import android.widget.BaseAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
 
+import com.art1415926535.ya_translate.models.Phrase;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -28,7 +30,7 @@ class ListViewAdapter extends BaseAdapter {
         this.phraseList = phraseList;
         this.rootList = list;
         inflater = LayoutInflater.from(mContext);
-        this.arraylist = new ArrayList<Phrase>();
+        this.arraylist = new ArrayList<>();
         this.arraylist.addAll(phraseList);
     }
 
@@ -73,10 +75,10 @@ class ListViewAdapter extends BaseAdapter {
         }
 
         // Set the results into TextViews
-        holder.fromLangCode.setText(phraseList.get(position).fromLangCode);
-        holder.toLangCode.setText(phraseList.get(position).toLangCode);
-        holder.fromText.setText(phraseList.get(position).fromText);
-        holder.toText.setText(phraseList.get(position).toText);
+        holder.fromLangCode.setText(phraseList.get(position).getFromLangCode());
+        holder.toLangCode.setText(phraseList.get(position).getToLangCode());
+        holder.fromText.setText(phraseList.get(position).getFromText());
+        holder.toText.setText(phraseList.get(position).getToText());
 
         return view;
     }
@@ -89,8 +91,8 @@ class ListViewAdapter extends BaseAdapter {
             phraseList.addAll(arraylist);
         } else {
             for (Phrase wp : arraylist) {
-                if (wp.fromText.toLowerCase(Locale.getDefault()).contains(charText) ||
-                        wp.toText.toLowerCase(Locale.getDefault()).contains(charText)) {
+                if (wp.getFromText().toLowerCase(Locale.getDefault()).contains(charText) ||
+                        wp.getToText().toLowerCase(Locale.getDefault()).contains(charText)) {
                     phraseList.add(wp);
                 }
             }

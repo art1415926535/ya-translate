@@ -35,7 +35,7 @@ class Translator {
      */
     static JSONObject translateText(String text, String fromLang, String toLang){
         String codes;
-        if (fromLang == null){
+        if ( Languages.getCodeByName(fromLang) == null){
             // Automatic language selection.
             codes = Languages.getCodeByName(toLang);
         }else{

@@ -4,4 +4,5 @@
     <color name="colorPrimaryDark">#222222</color>
     <color name="colorAccent">#f00</color>
     <color name="alpha">#00ffd633</color>
+    <color name="histroryRecyclerBackground">#e4e4e4</color>
 </resources>

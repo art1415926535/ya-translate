@@ -1,13 +1,16 @@
 package com.art1415926535.ya_translate;
 
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.constraint.ConstraintLayout;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
+import android.support.v7.widget.helper.ItemTouchHelper;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.text.method.ScrollingMovementMethod;
@@ -15,6 +18,7 @@ import android.util.TypedValue;
 import android.view.View;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
+import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.TextView;
@@ -41,12 +45,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.fragment_translator);
+        setContentView(R.layout.actitity_main);
 
         Languages.setContext(this);
 
         leftLang = (TextView) findViewById(R.id.leftLang);
+        leftLang.setOnClickListener(this);
         rightLang = (TextView) findViewById(R.id.rightLang);
+        rightLang.setOnClickListener(this);
 
         translatedTextConstraintLayout = (ConstraintLayout) findViewById(
                 R.id.translatedTextConstraintLayout);
@@ -95,7 +101,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
                 textTranslated = false;
                 lastTextChangedTime = System.currentTimeMillis();
-
             }
         });
 
@@ -131,7 +136,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     }
                 });
         historyRecyclerView.setAdapter(historyRecyclerAdapter);
+        ItemTouchHelper.Callback callback = new MovieTouchHistoryHelper(historyRecyclerAdapter);
+        ItemTouchHelper helper = new ItemTouchHelper(callback);
+        helper.attachToRecyclerView(historyRecyclerView);
 
+        // Запускаем наблюдателя изменений в поле перевода.
         runTextTranslateWatcher();
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
@@ -161,6 +170,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         Runnable runnable = new Runnable() {
             public void run() {
                 while (true) {
+                    // Если 1.5 секунды ничего не вводили, то отослать текст на перевод.
                     if ((System.currentTimeMillis() - lastTextChangedTime > 1500) && !textTranslated) {
                         textTranslated = true;
                         handler.post(new Runnable() {
@@ -256,10 +266,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     }
 
                     historyRecyclerAdapter.addItem(
-                            Languages.getCodeByName(leftLang.getText().toString()),
-                            editText.getText().toString(),
-                            Languages.getCodeByName(rightLang.getText().toString()),
-                            translatedText.getText().toString()
+                        Languages.getCodeByName(leftLang.getText().toString()),
+                        editText.getText().toString(),
+                        Languages.getCodeByName(rightLang.getText().toString()),
+                        translatedText.getText().toString()
                     );
 
                 } catch (JSONException e){
@@ -296,6 +306,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     public void onClick(View v) {
         switch (v.getId()){
             case R.id.swapLangs:
+
+                if (leftLang.getText().toString().equals(getString(R.string.auto_select_language))){
+                    Toast.makeText(this, getString(R.string.select_language),
+                            Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
                 Animation toRight = AnimationUtils.loadAnimation(getApplicationContext(),
                         R.anim.translate_to_right);
                 Animation toLeft = AnimationUtils.loadAnimation(getApplicationContext(),
@@ -340,10 +357,56 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 translatedText.setText("");
                 editText.setText("");
                 editText.requestFocus();
+                lastTextChangedTime = 0;
+                break;
+            case R.id.leftLang:
+                choiceLanguage(leftLang, true);
+                break;
+            case R.id.rightLang:
+                choiceLanguage(rightLang, false);
                 break;
 
             default:
                 break;
         }
+    }
+
+    private void choiceLanguage(final TextView tv, boolean addAuto){
+        AlertDialog.Builder builderSingle = new AlertDialog.Builder(this);
+        builderSingle.setTitle(R.string.select_language);
+
+        final ArrayAdapter<String> arrayAdapter = new ArrayAdapter<>(this,
+                android.R.layout.select_dialog_item);
+
+        if (addAuto){
+            // Add auto detect language position.
+            arrayAdapter.add(getString(R.string.auto_select_language));
+        }
+
+        // Add all available languages.
+        for (String lang : Languages.getLanguageNames()) {
+            arrayAdapter.add(lang);
+        }
+
+        // Dismiss alert.
+        builderSingle.setNegativeButton(R.string.dismiss, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.dismiss();
+            }
+        });
+
+        builderSingle.setAdapter(arrayAdapter, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                // Selected language.
+                String strName = arrayAdapter.getItem(which);
+                // Update text view.
+                tv.setText(strName);
+                // Update translate after choice language.
+                updateTranslate();
+            }
+        });
+        builderSingle.show();
     }
 }

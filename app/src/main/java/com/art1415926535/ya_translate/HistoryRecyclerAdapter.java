@@ -8,16 +8,17 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
+import com.art1415926535.ya_translate.models.Phrase;
+
 import java.util.ArrayList;
 import java.util.List;
 
 
 class HistoryRecyclerAdapter extends RecyclerView.Adapter<HistoryRecyclerAdapter.ViewHolder> {
-    private List<String[][]> data;
+    private List<Phrase> data;
     private View.OnClickListener onClickListener;
 
     static class ViewHolder extends RecyclerView.ViewHolder {
-        // each data item is just a string in this case
         private CardView cardView;
         ViewHolder(CardView v) {
             super(v);
@@ -31,48 +32,56 @@ class HistoryRecyclerAdapter extends RecyclerView.Adapter<HistoryRecyclerAdapter
     }
 
     void addItem(String fromLangCode, String fromText, String toLangCode, String toText) {
-        String[] codes = {fromLangCode, toLangCode};
-        String[] texts = {fromText, toText};
-        String[] new_data[] = {codes, texts};
+        Phrase newPhrase = new Phrase(fromLangCode, fromText, toLangCode, toText);
 
-        data.add(new_data);
+        int lastPhraseIndex = data.size() - 1;
+
+        // If list is not empty and last phrase same as new.
+        if ((lastPhraseIndex != -1) && (newPhrase.contains(data.get(lastPhraseIndex)))){
+            data.remove(lastPhraseIndex);
+            data.add(newPhrase);
+        } else {
+            data.add(newPhrase);
+        }
         this.notifyDataSetChanged();
     }
 
-    // Create new views (invoked by the layout manager)
+    void removeItem(int position){
+        data.remove(position);
+        notifyItemRemoved(position);
+    }
+
     @Override
     public HistoryRecyclerAdapter.ViewHolder onCreateViewHolder(ViewGroup parent,
                                                                 int viewType) {
-        // create a new view
+        // Create a new view
         View v = LayoutInflater.from(parent.getContext())
                 .inflate(R.layout.history_card, parent, false);
-        // set the view's size, margins, paddings and layout parameters
+
         v.setOnClickListener(onClickListener);
         return new ViewHolder((CardView) v);
     }
 
-    // Replace the contents of a view (invoked by the layout manager)
     @Override
     public void onBindViewHolder(ViewHolder holder, int position) {
-        // - get element from your dataset at this position
-        // - replace the contents of the view with that element
         TextView topLang = (TextView) holder.cardView.findViewById(R.id.topLang);
         TextView bottomLang = (TextView) holder.cardView.findViewById(R.id.bottomLang);
 
         TextView fromText = (TextView) holder.cardView.findViewById(R.id.fromText);
         TextView toText = (TextView) holder.cardView.findViewById(R.id.toText);
 
-        String[][] positoinData = data.get(data.size()-position-1);
+        // Revers of list
+        Phrase currentPhrase = data.get(data.size()-position-1);
 
-        topLang.setText(positoinData[0][0]);
-        bottomLang.setText(positoinData[0][1]);
+        topLang.setText(currentPhrase.getFromLangCode());
+        bottomLang.setText(currentPhrase.getToLangCode());
 
-        fromText.setText(positoinData[1][0]);
-        toText.setText(positoinData[1][1]);
+        toText.setText(currentPhrase.getToText());
+        fromText.setText(currentPhrase.getFromText());
 
     }
 
-    // Return the size of your dataset (invoked by the layout manager)
+    // Return the size of dataset
     @Override
     public int getItemCount() {
         return data.size();

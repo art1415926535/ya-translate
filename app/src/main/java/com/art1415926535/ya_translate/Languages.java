@@ -2,6 +2,7 @@ package com.art1415926535.ya_translate;
 
 import android.content.Context;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -9,11 +10,7 @@ import java.util.Map;
 class Languages {
     private static Languages ourInstance;
 
-    static Languages getInstance() {
-        return ourInstance;
-    }
-
-    public static void setContext(Context context){
+    static void setContext(Context context){
         ourInstance = new Languages(context);
     }
 
@@ -35,8 +32,14 @@ class Languages {
     /**
      * @return set of language names
      */
-    static Object[] getLanguageNames(){
-        return languages.keySet().toArray();
+    static String[] getLanguageNames() {
+        if (languages == null) {
+            return new String[0];
+        } else {
+            String[] langs = languages.keySet().toArray(new String[languages.size()]);
+            Arrays.sort(langs);
+            return langs;
+        }
     }
 
     static String getCodeByName(String name){

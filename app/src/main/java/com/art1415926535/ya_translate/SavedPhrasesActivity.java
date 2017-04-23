@@ -8,6 +8,8 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ListView;
 
+import com.art1415926535.ya_translate.models.Phrase;
+
 import java.util.ArrayList;
 
 public class SavedPhrasesActivity extends AppCompatActivity
@@ -46,10 +48,10 @@ public class SavedPhrasesActivity extends AppCompatActivity
                 Phrase entry = (Phrase) parent.getAdapter().getItem(position);
 
                 Intent intent = new Intent();
-                intent.putExtra("fromLangCode", entry.fromLangCode);
-                intent.putExtra("toLangCode", entry.toLangCode);
-                intent.putExtra("fromText", entry.fromText);
-                intent.putExtra("toText", entry.toText);
+                intent.putExtra("fromLangCode", entry.getFromLangCode());
+                intent.putExtra("toLangCode", entry.getToLangCode());
+                intent.putExtra("fromText", entry.getFromText());
+                intent.putExtra("toText", entry.getToText());
 
                 setResult(RESULT_OK, intent);
                 finish();
