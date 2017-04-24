@@ -15,6 +15,9 @@ import android.text.Editable;
 import android.text.TextWatcher;
 import android.text.method.ScrollingMovementMethod;
 import android.util.TypedValue;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
@@ -23,6 +26,12 @@ import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import com.art1415926535.ya_translate.DB.DataBase;
+import com.art1415926535.ya_translate.DB.DbHelper;
+import com.art1415926535.ya_translate.models.Phrase;
+import com.art1415926535.ya_translate.utils.Languages;
+import com.art1415926535.ya_translate.utils.Translator;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -41,6 +50,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private static long lastTranslateRequest = 0;
     private static long lastTextChangedTime = 0;
     private boolean textTranslated = true;
+    private boolean needTranslate = true;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -57,11 +67,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         translatedTextConstraintLayout = (ConstraintLayout) findViewById(
                 R.id.translatedTextConstraintLayout);
 
-        ImageButton swapLangs = (ImageButton) findViewById(R.id.swapLangs);
+        ImageButton swapLanguages = (ImageButton) findViewById(R.id.swapLangs);
+        ImageButton addFavorite = (ImageButton) findViewById(R.id.add_favorite);
         ImageButton playEditText = (ImageButton) findViewById(R.id.playEditText);
         ImageButton clearEditText = (ImageButton) findViewById(R.id.clearEditText);
 
-        swapLangs.setOnClickListener(this);
+        swapLanguages.setOnClickListener(this);
+        addFavorite.setOnClickListener(this);
         playEditText.setOnClickListener(this);
         clearEditText.setOnClickListener(this);
 
@@ -78,7 +90,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
             @Override
             public void afterTextChanged(Editable s) {
-
                 int len = s.toString().length();
 
                 if (len == 0 && translatedTextConstraintLayout.getVisibility() == View.VISIBLE){
@@ -98,7 +109,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 }else{
                     editText.setTextSize(TypedValue.COMPLEX_UNIT_SP, 15);
                 }
-
                 textTranslated = false;
                 lastTextChangedTime = System.currentTimeMillis();
             }
@@ -131,6 +141,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         rightLang.setText(Languages.getNameByCode(
                                 bottomLang.getText().toString().toLowerCase()));
 
+                        // Don't translate saved phrase.
+                        needTranslate = false;
+
                         editText.setText(fromText.getText().toString());
                         translatedText.setText(toText.getText().toString());
                     }
@@ -144,10 +157,32 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         runTextTranslateWatcher();
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
         toolbar.setTitle("Переводчик");
+    }
 
-//        Intent intent = new Intent(this, SavedPhrasesActivity.class);
-//        startActivityForResult(intent, 1);
+    public boolean needTranslateThis(){
+        return needTranslate;
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu){
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.main_menu, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item){
+        switch (item.getItemId()){
+            case R.id.open_favorites:
+                Intent intent = new Intent(this, SavedPhrasesActivity.class);
+                startActivityForResult(intent, 1);
+                break;
+            default:
+                break;
+        }
+        return true;
     }
 
     @Override
@@ -158,8 +193,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         leftLang.setText(Languages.getNameByCode(data.getStringExtra("fromLangCode")));
         rightLang.setText(Languages.getNameByCode(data.getStringExtra("toLangCode")));
 
+        needTranslate = false;
+
         editText.setText(data.getStringExtra("fromText"));
         translatedText.setText(data.getStringExtra("toText"));
+
     }
 
     /**
@@ -170,15 +208,22 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         Runnable runnable = new Runnable() {
             public void run() {
                 while (true) {
-                    // Если 1.5 секунды ничего не вводили, то отослать текст на перевод.
-                    if ((System.currentTimeMillis() - lastTextChangedTime > 1500) && !textTranslated) {
+                    // Since last edit gone more 1s and text don't translated.
+                    if ((System.currentTimeMillis() - lastTextChangedTime > 1000) &&
+                            ! textTranslated) {
+                        if (needTranslate) {
+                            // Translate if necessary.
+                            handler.post(new Runnable() {
+                                @Override
+                                public void run() {
+                                    updateTranslate();
+                                }
+                            });
+                        }
+                        // Now this phrase translated.
                         textTranslated = true;
-                        handler.post(new Runnable() {
-                            @Override
-                            public void run() {
-                                updateTranslate();
-                            }
-                        });
+                        // Need translated next phrase.
+                        needTranslate = true;
                     }
                 }
             }
@@ -190,8 +235,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
      * Translate text from editText and write to translatedText.
      */
     private void updateTranslate() {
-//        Toast.makeText(getApplicationContext(), "UPDATE",
-//                Toast.LENGTH_SHORT).show();
         translatedText.setText("");
 
         final String text = editText.getText().toString();
@@ -208,13 +251,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         final Handler handler = new Handler();
         Runnable runnable = new Runnable() {
             public void run() {
-
                 final JSONObject response = Translator.translateText(
                         text, leftLang.getText().toString(), rightLang.getText().toString());
 
+
                 handler.post(new Runnable() {
                     public void run() {
-                        // If this is NOT last request.
+                        // If this is NOT last request. The request may be delayed.
                         if (myTime != lastTranslateRequest){
                             return;
                         }
@@ -271,6 +314,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         Languages.getCodeByName(rightLang.getText().toString()),
                         translatedText.getText().toString()
                     );
+                    recyclerLayoutManager.scrollToPosition(0);
 
                 } catch (JSONException e){
                     Toast.makeText(getApplicationContext(), R.string.response_data_error,
@@ -306,47 +350,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     public void onClick(View v) {
         switch (v.getId()){
             case R.id.swapLangs:
-
-                if (leftLang.getText().toString().equals(getString(R.string.auto_select_language))){
-                    Toast.makeText(this, getString(R.string.select_language),
-                            Toast.LENGTH_SHORT).show();
-                    return;
-                }
-
-                Animation toRight = AnimationUtils.loadAnimation(getApplicationContext(),
-                        R.anim.translate_to_right);
-                Animation toLeft = AnimationUtils.loadAnimation(getApplicationContext(),
-                        R.anim.translate_to_left);
-
-                toLeft.setAnimationListener(new Animation.AnimationListener() {
-                    @Override
-                    public void onAnimationStart(Animation animation) {
-
-                    }
-
-                    @Override
-                    public void onAnimationRepeat(Animation animation) {
-
-                    }
-
-                    @Override
-                    public void onAnimationEnd(Animation animation) {
-
-                        CharSequence left = leftLang.getText();
-                        leftLang.setText(rightLang.getText());
-                        rightLang.setText(left);
-
-                        updateTranslate();
-
-                        leftLang.startAnimation(AnimationUtils.loadAnimation(
-                                getApplicationContext(), R.anim.translate_back_to_right));
-                        rightLang.startAnimation(AnimationUtils.loadAnimation(
-                                getApplicationContext(), R.anim.translate_back_to_left));
-                    }
-                });
-
-                leftLang.startAnimation(toRight);
-                rightLang.startAnimation(toLeft);
+                swapLanguages();
                 break;
 
             case R.id.playEditText:
@@ -354,21 +358,80 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 break;
 
             case R.id.clearEditText:
+                needTranslate = false;
+
                 translatedText.setText("");
                 editText.setText("");
                 editText.requestFocus();
                 lastTextChangedTime = 0;
                 break;
+
             case R.id.leftLang:
                 choiceLanguage(leftLang, true);
                 break;
+
             case R.id.rightLang:
                 choiceLanguage(rightLang, false);
                 break;
 
+            case R.id.add_favorite:
+                // Save this phrase to database.
+                DataBase db = new DataBase(this, DbHelper.TABLE_FAVOURITES);
+                db.open();
+                db.createPhrase(new Phrase(
+                        Languages.getCodeByName(leftLang.getText().toString()),
+                        editText.getText().toString(),
+                        Languages.getCodeByName(rightLang.getText().toString()),
+                        translatedText.getText().toString()
+                ));
+                db.close();
+
             default:
                 break;
         }
+    }
+
+    private void swapLanguages() {
+        if (leftLang.getText().toString().equals(getString(R.string.auto_select_language))){
+            Toast.makeText(this, getString(R.string.select_language),
+                    Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        Animation toRight = AnimationUtils.loadAnimation(getApplicationContext(),
+                R.anim.translate_to_right);
+        Animation toLeft = AnimationUtils.loadAnimation(getApplicationContext(),
+                R.anim.translate_to_left);
+
+        toLeft.setAnimationListener(new Animation.AnimationListener() {
+            @Override
+            public void onAnimationStart(Animation animation) {
+
+            }
+
+            @Override
+            public void onAnimationRepeat(Animation animation) {
+
+            }
+
+            @Override
+            public void onAnimationEnd(Animation animation) {
+
+                CharSequence left = leftLang.getText();
+                leftLang.setText(rightLang.getText());
+                rightLang.setText(left);
+
+                updateTranslate();
+
+                leftLang.startAnimation(AnimationUtils.loadAnimation(
+                        getApplicationContext(), R.anim.translate_back_to_right));
+                rightLang.startAnimation(AnimationUtils.loadAnimation(
+                        getApplicationContext(), R.anim.translate_back_to_left));
+            }
+        });
+
+        leftLang.startAnimation(toRight);
+        rightLang.startAnimation(toLeft);
     }
 
     private void choiceLanguage(final TextView tv, boolean addAuto){

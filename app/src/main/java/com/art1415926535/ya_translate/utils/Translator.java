@@ -1,4 +1,4 @@
-package com.art1415926535.ya_translate;
+package com.art1415926535.ya_translate.utils;
 
 
 import org.json.JSONException;
@@ -13,7 +13,7 @@ import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
 
-class Translator {
+public class Translator {
     private static final Translator ourInstance = new Translator();
     private static final String key = "trnsl.1.1.20170414T131406Z.4bd8303ec229922b.266e6ec4b7b55d08e21c70c7ed1a0c004cd3bca7";
     private static final String url = "https://translate.yandex.net/api/v1.5/tr.json/translate";
@@ -33,7 +33,7 @@ class Translator {
      * @param toLang to what language (name) to translate.
      * @return JSONObject (code, lang, text).
      */
-    static JSONObject translateText(String text, String fromLang, String toLang){
+    public static JSONObject translateText(String text, String fromLang, String toLang){
         String codes;
         if ( Languages.getCodeByName(fromLang) == null){
             // Automatic language selection.

@@ -1,26 +1,58 @@
 package com.art1415926535.ya_translate.models;
 
+import android.content.ContentValues;
+
+import com.art1415926535.ya_translate.DB.DbHelper;
+
 public class Phrase {
+    private long id;
+
     private String fromLangCode;
     private String fromText;
     private String toLangCode;
     private String toText;
 
+    public long getId() {
+        return id;
+    }
+
+    public void setId(long id) {
+        this.id = id;
+    }
+
     public String getFromLangCode() {
         return fromLangCode;
+    }
+
+    public void setFromLangCode(String fromLangCode) {
+        this.fromLangCode = fromLangCode;
     }
 
     public String getFromText() {
         return fromText;
     }
 
+    public void setFromText(String fromText) {
+        this.fromText = fromText;
+    }
+
     public String getToLangCode() {
         return toLangCode;
+    }
+
+    public void setToLangCode(String toLangCode) {
+        this.toLangCode = toLangCode;
     }
 
     public String getToText() {
         return toText;
     }
+
+    public void setToText(String toText) {
+        this.toText = toText;
+    }
+
+    public Phrase(){}
 
     public Phrase(String fromLangCode, String fromText, String toLangCode, String toText){
         this.fromLangCode = fromLangCode;
@@ -35,7 +67,9 @@ public class Phrase {
      * @return is it contains
      */
     public boolean contains(Phrase otherPhrase){
-        if (! getFromLangCode().equals(otherPhrase.getFromLangCode())){
+        if (getFromLangCode() != null &&
+                otherPhrase.getFromLangCode() != null &&
+                ! getFromLangCode().equals(otherPhrase.getFromLangCode())){
             return false;
         }
 
@@ -47,8 +81,20 @@ public class Phrase {
             return false;
         }
 
-        // Переведенный текст не сравниваем, так как могут быть большие изменения.
-
         return true;
+    }
+
+    public ContentValues toContentValues(){
+        ContentValues values = new ContentValues();
+
+        values.put(DbHelper.KEY_ID, getId());
+
+        values.put(DbHelper.KEY_FROM_LANG_CODE, getFromLangCode());
+        values.put(DbHelper.KEY_FROM_TEXT, getFromText());
+
+        values.put(DbHelper.KEY_TO_LANG_CODE, getToLangCode());
+        values.put(DbHelper.KEY_TO_TEXT, getToText());
+
+        return values;
     }
 }

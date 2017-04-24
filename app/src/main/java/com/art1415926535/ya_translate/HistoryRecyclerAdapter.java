@@ -8,15 +8,18 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
+import com.art1415926535.ya_translate.DB.DataBase;
+import com.art1415926535.ya_translate.DB.DbHelper;
 import com.art1415926535.ya_translate.models.Phrase;
 
-import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 
 class HistoryRecyclerAdapter extends RecyclerView.Adapter<HistoryRecyclerAdapter.ViewHolder> {
     private List<Phrase> data;
     private View.OnClickListener onClickListener;
+    private DataBase db;
 
     static class ViewHolder extends RecyclerView.ViewHolder {
         private CardView cardView;
@@ -28,25 +31,41 @@ class HistoryRecyclerAdapter extends RecyclerView.Adapter<HistoryRecyclerAdapter
 
     HistoryRecyclerAdapter(Context context, View.OnClickListener onClickListener) {
         this.onClickListener = onClickListener;
-        data = new ArrayList<>();
+
+        db = new DataBase(context, DbHelper.TABLE_HISTORY);
+        db.open();
+
+        List<Phrase> phrases = db.getAllPhrases();
+        Collections.reverse(phrases);
+        data = phrases;
     }
 
     void addItem(String fromLangCode, String fromText, String toLangCode, String toText) {
         Phrase newPhrase = new Phrase(fromLangCode, fromText, toLangCode, toText);
 
-        int lastPhraseIndex = data.size() - 1;
-
         // If list is not empty and last phrase same as new.
-        if ((lastPhraseIndex != -1) && (newPhrase.contains(data.get(lastPhraseIndex)))){
-            data.remove(lastPhraseIndex);
-            data.add(newPhrase);
+        if ((! data.isEmpty()) && (newPhrase.contains(data.get(0)))){
+            Phrase lastPhrase = data.get(0);
+
+            // Update last phrase.
+            lastPhrase.setFromLangCode(newPhrase.getFromLangCode());
+            lastPhrase.setFromText(newPhrase.getFromText());
+            lastPhrase.setToLangCode(newPhrase.getToLangCode());
+            lastPhrase.setToText(newPhrase.getToText());
+
+            // Update row in database.
+            db.updatePhrase(lastPhrase);
         } else {
-            data.add(newPhrase);
+            // Add new phrase.
+            data.add(0, newPhrase);
+            newPhrase.setId(db.createPhrase(newPhrase));
         }
-        this.notifyDataSetChanged();
+        notifyDataSetChanged();
     }
 
     void removeItem(int position){
+        Phrase phrase = data.get(position);
+        db.deletePhrase(phrase);
         data.remove(position);
         notifyItemRemoved(position);
     }
@@ -56,7 +75,7 @@ class HistoryRecyclerAdapter extends RecyclerView.Adapter<HistoryRecyclerAdapter
                                                                 int viewType) {
         // Create a new view
         View v = LayoutInflater.from(parent.getContext())
-                .inflate(R.layout.history_card, parent, false);
+                .inflate(R.layout.card, parent, false);
 
         v.setOnClickListener(onClickListener);
         return new ViewHolder((CardView) v);
@@ -71,7 +90,7 @@ class HistoryRecyclerAdapter extends RecyclerView.Adapter<HistoryRecyclerAdapter
         TextView toText = (TextView) holder.cardView.findViewById(R.id.toText);
 
         // Revers of list
-        Phrase currentPhrase = data.get(data.size()-position-1);
+        Phrase currentPhrase = data.get(position);
 
         topLang.setText(currentPhrase.getFromLangCode());
         bottomLang.setText(currentPhrase.getToLangCode());

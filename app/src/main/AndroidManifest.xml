@@ -25,7 +25,8 @@
 
         <activity
             android:name=".SavedPhrasesActivity"
-            android:label="@string/history">
+            android:label="@string/saved_phrases"
+            android:theme="@style/AppTheme">
         </activity>
     </application>
 

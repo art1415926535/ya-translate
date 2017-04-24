@@ -176,7 +176,7 @@
                 app:srcCompat="@drawable/ic_volume_up_black_24dp" />
 
             <ImageButton
-                android:id="@+id/imageButton4"
+                android:id="@+id/add_favorite"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:background="?attr/selectableItemBackground"

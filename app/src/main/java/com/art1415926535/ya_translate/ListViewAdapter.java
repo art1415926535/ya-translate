@@ -5,33 +5,37 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
-import android.widget.ListView;
 import android.widget.TextView;
 
+import com.art1415926535.ya_translate.DB.DataBase;
+import com.art1415926535.ya_translate.DB.DbHelper;
 import com.art1415926535.ya_translate.models.Phrase;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 
 
 class ListViewAdapter extends BaseAdapter {
-
-    // Declare Variables
-
     Context mContext;
     LayoutInflater inflater;
     private List<Phrase> phraseList;
-    private ArrayList<Phrase> arraylist;
-    private ListView rootList;
+    private ArrayList<Phrase> arrayList;
+    private DataBase db;
 
-    ListViewAdapter(Context context, List<Phrase> phraseList, ListView list) {
+    ListViewAdapter(Context context) {
         mContext = context;
-        this.phraseList = phraseList;
-        this.rootList = list;
+
+        db = new DataBase(context, DbHelper.TABLE_FAVOURITES);
+        db.open();
+
+        phraseList = db.getAllPhrases();
+        Collections.reverse(phraseList);
+
         inflater = LayoutInflater.from(mContext);
-        this.arraylist = new ArrayList<>();
-        this.arraylist.addAll(phraseList);
+        this.arrayList = new ArrayList<>();
+        this.arrayList.addAll(phraseList);
     }
 
     private class ViewHolder {
@@ -60,9 +64,9 @@ class ListViewAdapter extends BaseAdapter {
         final ViewHolder holder;
         if (view == null) {
             holder = new ViewHolder();
-            view = inflater.inflate(R.layout.history_card, null);
+            view = inflater.inflate(R.layout.card, null);
 
-            // Locate the TextViews in listview_item.xml
+            // Locate the TextViews in listview_item.xml.
             holder.fromLangCode = (TextView) view.findViewById(R.id.topLang);
             holder.toLangCode = (TextView) view.findViewById(R.id.bottomLang);
 
@@ -74,7 +78,7 @@ class ListViewAdapter extends BaseAdapter {
             holder = (ViewHolder) view.getTag();
         }
 
-        // Set the results into TextViews
+        // Set the results into TextViews.
         holder.fromLangCode.setText(phraseList.get(position).getFromLangCode());
         holder.toLangCode.setText(phraseList.get(position).getToLangCode());
         holder.fromText.setText(phraseList.get(position).getFromText());
@@ -83,14 +87,14 @@ class ListViewAdapter extends BaseAdapter {
         return view;
     }
 
-    // Filter Class
+    // Filter Class.
     void filter(String charText) {
         charText = charText.toLowerCase(Locale.getDefault());
         phraseList.clear();
         if (charText.length() == 0) {
-            phraseList.addAll(arraylist);
+            phraseList.addAll(arrayList);
         } else {
-            for (Phrase wp : arraylist) {
+            for (Phrase wp : arrayList) {
                 if (wp.getFromText().toLowerCase(Locale.getDefault()).contains(charText) ||
                         wp.getToText().toLowerCase(Locale.getDefault()).contains(charText)) {
                     phraseList.add(wp);
