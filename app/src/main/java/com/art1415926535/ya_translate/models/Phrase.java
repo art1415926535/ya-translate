@@ -2,7 +2,7 @@ package com.art1415926535.ya_translate.models;
 
 import android.content.ContentValues;
 
-import com.art1415926535.ya_translate.DB.DbHelper;
+import com.art1415926535.ya_translate.DB.DBHelper;
 
 public class Phrase {
     private long id;
@@ -87,13 +87,13 @@ public class Phrase {
     public ContentValues toContentValues(){
         ContentValues values = new ContentValues();
 
-        values.put(DbHelper.KEY_ID, getId());
+        values.put(DBHelper.KEY_ID, getId());
 
-        values.put(DbHelper.KEY_FROM_LANG_CODE, getFromLangCode());
-        values.put(DbHelper.KEY_FROM_TEXT, getFromText());
+        values.put(DBHelper.KEY_FROM_LANG_CODE, getFromLangCode());
+        values.put(DBHelper.KEY_FROM_TEXT, getFromText());
 
-        values.put(DbHelper.KEY_TO_LANG_CODE, getToLangCode());
-        values.put(DbHelper.KEY_TO_TEXT, getToText());
+        values.put(DBHelper.KEY_TO_LANG_CODE, getToLangCode());
+        values.put(DBHelper.KEY_TO_TEXT, getToText());
 
         return values;
     }

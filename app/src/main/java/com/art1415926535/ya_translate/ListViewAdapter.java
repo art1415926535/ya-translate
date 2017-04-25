@@ -7,8 +7,8 @@ import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.TextView;
 
+import com.art1415926535.ya_translate.DB.DBHelper;
 import com.art1415926535.ya_translate.DB.DataBase;
-import com.art1415926535.ya_translate.DB.DbHelper;
 import com.art1415926535.ya_translate.models.Phrase;
 
 import java.util.ArrayList;
@@ -27,7 +27,7 @@ class ListViewAdapter extends BaseAdapter {
     ListViewAdapter(Context context) {
         mContext = context;
 
-        db = new DataBase(context, DbHelper.TABLE_FAVOURITES);
+        db = new DataBase(context, DBHelper.TABLE_FAVOURITES);
         db.open();
 
         phraseList = db.getAllPhrases();

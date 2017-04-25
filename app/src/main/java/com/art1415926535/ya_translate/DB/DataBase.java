@@ -16,18 +16,18 @@ public class DataBase {
 
     // Database fields
     private SQLiteDatabase database;
-    private DbHelper dbHelper;
+    private DBHelper dbHelper;
     private String table;
     private String[] allColumns = {
-            DbHelper.KEY_ID,
-            DbHelper.KEY_FROM_LANG_CODE,
-            DbHelper.KEY_FROM_TEXT,
-            DbHelper.KEY_TO_LANG_CODE,
-            DbHelper.KEY_TO_TEXT
+            DBHelper.KEY_ID,
+            DBHelper.KEY_FROM_LANG_CODE,
+            DBHelper.KEY_FROM_TEXT,
+            DBHelper.KEY_TO_LANG_CODE,
+            DBHelper.KEY_TO_TEXT
     };
 
     public DataBase(Context context, String tableName) {
-        dbHelper = new DbHelper(context);
+        dbHelper = new DBHelper(context);
         table = tableName;
     }
 
@@ -41,19 +41,19 @@ public class DataBase {
 
     public long createPhrase(Phrase phrase) {
         ContentValues values = phrase.toContentValues();
-        values.remove(DbHelper.KEY_ID);
+        values.remove(DBHelper.KEY_ID);
         return database.insert(table, null, values);
     }
 
     public void updatePhrase(Phrase phrase){
         ContentValues cv = phrase.toContentValues();
-        String id = cv.getAsString(DbHelper.KEY_ID);
-        cv.remove(DbHelper.KEY_ID);
-        database.update(table, cv, DbHelper.KEY_ID + "=?", new String[] { id });
+        String id = cv.getAsString(DBHelper.KEY_ID);
+        cv.remove(DBHelper.KEY_ID);
+        database.update(table, cv, DBHelper.KEY_ID + "=?", new String[] { id });
     }
 
     public void deletePhrase(Phrase phrase) {
-        String whereClause = DbHelper.KEY_ID + "=?";
+        String whereClause = DBHelper.KEY_ID + "=?";
         String[] whereArgs = new String[] { String.valueOf(phrase.getId()) };
 
         database.delete(table, whereClause, whereArgs);
@@ -62,7 +62,7 @@ public class DataBase {
     public List<Phrase> getAllPhrases() {
         List<Phrase> comments = new ArrayList<>();
 
-        Cursor cursor = database.query(table, allColumns, null, null, null, null, DbHelper.KEY_ID);
+        Cursor cursor = database.query(table, allColumns, null, null, null, null, DBHelper.KEY_ID);
 
         cursor.moveToFirst();
         while (!cursor.isAfterLast()) {

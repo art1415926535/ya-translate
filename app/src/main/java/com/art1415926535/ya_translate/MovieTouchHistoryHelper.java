@@ -8,7 +8,7 @@ public class MovieTouchHistoryHelper extends ItemTouchHelper.SimpleCallback {
     private PhrasesRecyclerAdapter adapter;
 
     public MovieTouchHistoryHelper(PhrasesRecyclerAdapter adapter){
-        super(ItemTouchHelper.UP | ItemTouchHelper.DOWN, ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT);
+        super(ItemTouchHelper.ACTION_STATE_IDLE, ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT);
         this.adapter = adapter;
     }
 

@@ -28,8 +28,8 @@ import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.art1415926535.ya_translate.DB.DBHelper;
 import com.art1415926535.ya_translate.DB.DataBase;
-import com.art1415926535.ya_translate.DB.DbHelper;
 import com.art1415926535.ya_translate.models.Phrase;
 import com.art1415926535.ya_translate.utils.Languages;
 import com.art1415926535.ya_translate.utils.Translator;
@@ -162,7 +162,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         translatedText.setText(toText.getText().toString());
                     }
                 },
-                DbHelper.TABLE_HISTORY);
+                DBHelper.TABLE_HISTORY);
 
         historyRecyclerView.setAdapter(phrasesRecyclerAdapter);
         ItemTouchHelper.Callback callback = new MovieTouchHistoryHelper(phrasesRecyclerAdapter);
@@ -393,7 +393,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 addFavorite.setTag(R.drawable.ic_bookmark_red_24dp);
 
                 // Save this phrase to database.
-                DataBase db = new DataBase(this, DbHelper.TABLE_FAVOURITES);
+                DataBase db = new DataBase(this, DBHelper.TABLE_FAVOURITES);
                 db.open();
                 db.createPhrase(new Phrase(
                         Languages.getCodeByName(leftLang.getText().toString()),

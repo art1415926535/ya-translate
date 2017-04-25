@@ -5,7 +5,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
 
-public class DbHelper extends SQLiteOpenHelper {
+public class DBHelper extends SQLiteOpenHelper {
     public static final String TABLE_HISTORY = "history";
     public static final String TABLE_FAVOURITES = "favourites";
 
@@ -18,7 +18,7 @@ public class DbHelper extends SQLiteOpenHelper {
     private static final String DATABASE_NAME = "db";
     private static final int DATABASE_VERSION = 1;
 
-    DbHelper(Context context) {
+    DBHelper(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
     }
 

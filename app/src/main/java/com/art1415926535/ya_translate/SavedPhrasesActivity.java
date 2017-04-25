@@ -13,7 +13,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.TextView;
 
-import com.art1415926535.ya_translate.DB.DbHelper;
+import com.art1415926535.ya_translate.DB.DBHelper;
 
 public class SavedPhrasesActivity extends AppCompatActivity
         implements SearchView.OnQueryTextListener{
@@ -56,7 +56,7 @@ public class SavedPhrasesActivity extends AppCompatActivity
                         finish();
                     }
                 },
-                DbHelper.TABLE_FAVOURITES);
+                DBHelper.TABLE_FAVOURITES);
 
         favoritiesRecyclerView.setAdapter(phrasesRecyclerAdapter);
         ItemTouchHelper.Callback callback = new MovieTouchHistoryHelper(phrasesRecyclerAdapter);
