@@ -2,6 +2,7 @@ package com.art1415926535.ya_translate;
 
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.constraint.ConstraintLayout;
@@ -44,7 +45,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private TextView translatedText;
     private ConstraintLayout translatedTextConstraintLayout;
     private RecyclerView historyRecyclerView;
-    private HistoryRecyclerAdapter historyRecyclerAdapter;
+    private PhrasesRecyclerAdapter phrasesRecyclerAdapter;
     private RecyclerView.LayoutManager recyclerLayoutManager;
 
     private static long lastTranslateRequest = 0;
@@ -52,12 +53,18 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private boolean textTranslated = true;
     private boolean needTranslate = true;
 
+    private SharedPreferences preferences;
+
+    SharedPreferences.Editor preferencesEditor;
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.actitity_main);
 
         Languages.setContext(this);
+
+        preferences = getPreferences(MODE_PRIVATE);
 
         leftLang = (TextView) findViewById(R.id.leftLang);
         leftLang.setOnClickListener(this);
@@ -68,17 +75,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 R.id.translatedTextConstraintLayout);
 
         ImageButton swapLanguages = (ImageButton) findViewById(R.id.swapLangs);
-        ImageButton addFavorite = (ImageButton) findViewById(R.id.add_favorite);
-        ImageButton playEditText = (ImageButton) findViewById(R.id.playEditText);
+        ImageButton addFavorite = (ImageButton) findViewById(R.id.addFavorite);
         ImageButton clearEditText = (ImageButton) findViewById(R.id.clearEditText);
 
         swapLanguages.setOnClickListener(this);
         addFavorite.setOnClickListener(this);
-        playEditText.setOnClickListener(this);
         clearEditText.setOnClickListener(this);
 
-        leftLang.setText("русский");
-        rightLang.setText("английский");
+        leftLang.setText(preferences.getString("fromLang", "русский"));
+        rightLang.setText(preferences.getString("toLang", "английский"));
 
         editText = (EditText) findViewById(R.id.editText);
         editText.addTextChangedListener(new TextWatcher() {
@@ -126,7 +131,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         historyRecyclerView.setLayoutManager(recyclerLayoutManager);
 
         // Set adapter with history data.
-        historyRecyclerAdapter = new HistoryRecyclerAdapter(this,
+        phrasesRecyclerAdapter = new PhrasesRecyclerAdapter(this,
                 new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
@@ -147,9 +152,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         editText.setText(fromText.getText().toString());
                         translatedText.setText(toText.getText().toString());
                     }
-                });
-        historyRecyclerView.setAdapter(historyRecyclerAdapter);
-        ItemTouchHelper.Callback callback = new MovieTouchHistoryHelper(historyRecyclerAdapter);
+                },
+                DbHelper.TABLE_HISTORY);
+
+        historyRecyclerView.setAdapter(phrasesRecyclerAdapter);
+        ItemTouchHelper.Callback callback = new MovieTouchHistoryHelper(phrasesRecyclerAdapter);
         ItemTouchHelper helper = new ItemTouchHelper(callback);
         helper.attachToRecyclerView(historyRecyclerView);
 
@@ -159,10 +166,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         toolbar.setTitle("Переводчик");
-    }
-
-    public boolean needTranslateThis(){
-        return needTranslate;
     }
 
     @Override
@@ -308,7 +311,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         translatedText.setTextSize(TypedValue.COMPLEX_UNIT_SP, 15);
                     }
 
-                    historyRecyclerAdapter.addItem(
+                    if (leftLang.getText().toString().equals(getString(R.string.auto_select_language))){
+                        String leftLangCodeFromResponse = response.getString("lang").split("-")[0];
+                        leftLang.setText(Languages.getNameByCode(leftLangCodeFromResponse));
+                    }
+
+                    phrasesRecyclerAdapter.addItem(
                         Languages.getCodeByName(leftLang.getText().toString()),
                         editText.getText().toString(),
                         Languages.getCodeByName(rightLang.getText().toString()),
@@ -353,10 +361,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 swapLanguages();
                 break;
 
-            case R.id.playEditText:
-                Toast.makeText(getApplicationContext(), "Play", Toast.LENGTH_SHORT).show();
-                break;
-
             case R.id.clearEditText:
                 needTranslate = false;
 
@@ -374,7 +378,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 choiceLanguage(rightLang, false);
                 break;
 
-            case R.id.add_favorite:
+            case R.id.addFavorite:
                 // Save this phrase to database.
                 DataBase db = new DataBase(this, DbHelper.TABLE_FAVOURITES);
                 db.open();
@@ -471,5 +475,17 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             }
         });
         builderSingle.show();
+    }
+
+    @Override
+    protected void onStop() {
+        // Save languages preferences.
+        preferencesEditor = preferences.edit();
+        preferencesEditor.putString("fromLang", leftLang.getText().toString());
+        preferencesEditor.putString("toLang", rightLang.getText().toString());
+
+        // Commit the edits.
+        preferencesEditor.apply();
+        super.onStop();
     }
 }

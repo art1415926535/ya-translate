@@ -20,9 +20,14 @@
         <requestFocus />
     </android.support.v7.widget.SearchView>
 
-    <ListView
-        android:id="@+id/searchable_list_view"
-        android:layout_width="fill_parent"
-        android:layout_height="fill_parent"/>
+    <android.support.v7.widget.RecyclerView
+        android:id="@+id/favoritesRecycler"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/histroryRecyclerBackground"
+        android:clipToPadding="false"
+        android:elevation="0dp"
+        android:paddingBottom="8dp"
+        android:paddingTop="8dp"/>
 
 </LinearLayout>

@@ -107,17 +107,6 @@
                 app:layout_constraintTop_toTopOf="parent"
                 app:srcCompat="@drawable/ic_clear_black_24dp" />
 
-            <ImageButton
-                android:id="@+id/playEditText"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:background="?attr/selectableItemBackground"
-                android:contentDescription="@string/play"
-                android:padding="8dp"
-                app:layout_constraintLeft_toLeftOf="parent"
-                app:layout_constraintTop_toTopOf="parent"
-                app:srcCompat="@drawable/ic_volume_up_black_24dp" />
-
             <EditText
                 android:id="@+id/editText"
                 android:layout_width="0dp"
@@ -146,7 +135,7 @@
         android:id="@+id/translatedTextConstraintLayout"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        android:visibility="visible"
+        android:visibility="gone"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintLeft_toLeftOf="parent"
@@ -164,19 +153,7 @@
             app:layout_constraintTop_toTopOf="parent">
 
             <ImageButton
-                android:id="@+id/imageButton3"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_margin="0dp"
-                android:background="?attr/selectableItemBackground"
-                android:contentDescription="@string/play"
-                android:padding="8dp"
-                app:layout_constraintLeft_toLeftOf="parent"
-                app:layout_constraintTop_toTopOf="parent"
-                app:srcCompat="@drawable/ic_volume_up_black_24dp" />
-
-            <ImageButton
-                android:id="@+id/add_favorite"
+                android:id="@+id/addFavorite"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:background="?attr/selectableItemBackground"
@@ -222,11 +199,11 @@
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:background="@color/histroryRecyclerBackground"
-        android:visibility="gone"
-        android:elevation="0dp"
-        android:paddingTop="8dp"
-        android:paddingBottom="8dp"
         android:clipToPadding="false"
+        android:elevation="0dp"
+        android:paddingBottom="8dp"
+        android:paddingTop="8dp"
+        android:visibility="visible"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"

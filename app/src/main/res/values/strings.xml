@@ -2,7 +2,7 @@
     <string name="app_name">Переводчик</string>
 
     <string name="swap">swap</string>
-    <string name="save_phrase">savePhrase</string>
+    <string name="save_phrase">Сохранение</string>
     <string name="too_many_requests_error">Превышено суточное ограничение на объем переведенного текста. Попробуйте выполнить перевод прозже.</string>
     <string name="api_key_error">Ошибка API ключа</string>
     <string name="request_entity_too_large_error">Превышен максимально допустимый размер текста. Введите текст меньшей длинны.</string>

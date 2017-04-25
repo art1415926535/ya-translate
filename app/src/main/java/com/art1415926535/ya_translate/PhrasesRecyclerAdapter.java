@@ -3,21 +3,24 @@ package com.art1415926535.ya_translate;
 import android.content.Context;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
 import com.art1415926535.ya_translate.DB.DataBase;
-import com.art1415926535.ya_translate.DB.DbHelper;
 import com.art1415926535.ya_translate.models.Phrase;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 
 
-class HistoryRecyclerAdapter extends RecyclerView.Adapter<HistoryRecyclerAdapter.ViewHolder> {
+class PhrasesRecyclerAdapter extends RecyclerView.Adapter<PhrasesRecyclerAdapter.ViewHolder> {
     private List<Phrase> data;
+    private List<Phrase> visibleData;
     private View.OnClickListener onClickListener;
     private DataBase db;
 
@@ -29,15 +32,19 @@ class HistoryRecyclerAdapter extends RecyclerView.Adapter<HistoryRecyclerAdapter
         }
     }
 
-    HistoryRecyclerAdapter(Context context, View.OnClickListener onClickListener) {
+    PhrasesRecyclerAdapter(Context context, View.OnClickListener onClickListener, String table) {
         this.onClickListener = onClickListener;
 
-        db = new DataBase(context, DbHelper.TABLE_HISTORY);
+        db = new DataBase(context, table);
         db.open();
 
         List<Phrase> phrases = db.getAllPhrases();
         Collections.reverse(phrases);
         data = phrases;
+        visibleData = new ArrayList<>();
+
+        visibleData.addAll(data);
+        Log.d("1", visibleData.toString());
     }
 
     void addItem(String fromLangCode, String fromText, String toLangCode, String toText) {
@@ -64,14 +71,19 @@ class HistoryRecyclerAdapter extends RecyclerView.Adapter<HistoryRecyclerAdapter
     }
 
     void removeItem(int position){
-        Phrase phrase = data.get(position);
+        Phrase phrase = visibleData.get(position);
         db.deletePhrase(phrase);
-        data.remove(position);
+        for (int i=0; i<data.size(); i++){
+            if(phrase.equals(data.get(i))){
+                data.remove(i);
+            }
+        }
+        visibleData.remove(position);
         notifyItemRemoved(position);
     }
 
     @Override
-    public HistoryRecyclerAdapter.ViewHolder onCreateViewHolder(ViewGroup parent,
+    public PhrasesRecyclerAdapter.ViewHolder onCreateViewHolder(ViewGroup parent,
                                                                 int viewType) {
         // Create a new view
         View v = LayoutInflater.from(parent.getContext())
@@ -90,7 +102,7 @@ class HistoryRecyclerAdapter extends RecyclerView.Adapter<HistoryRecyclerAdapter
         TextView toText = (TextView) holder.cardView.findViewById(R.id.toText);
 
         // Revers of list
-        Phrase currentPhrase = data.get(position);
+        Phrase currentPhrase = visibleData.get(position);
 
         topLang.setText(currentPhrase.getFromLangCode());
         bottomLang.setText(currentPhrase.getToLangCode());
@@ -103,7 +115,27 @@ class HistoryRecyclerAdapter extends RecyclerView.Adapter<HistoryRecyclerAdapter
     // Return the size of dataset
     @Override
     public int getItemCount() {
-        return data.size();
+        return visibleData.size();
+    }
+
+    public void filter(String text){
+        text = text.toLowerCase(Locale.getDefault());
+
+        visibleData.clear();
+
+        if (text.length() == 0) {
+            visibleData.addAll(data);
+        } else {
+            for (Phrase phrase : data) {
+                if (phrase.getFromText().toLowerCase(Locale.getDefault()).contains(text) ||
+                        phrase.getToText().toLowerCase(Locale.getDefault()).contains(text)) {
+                    visibleData.add(phrase);
+                }
+            }
+        }
+        notifyDataSetChanged();
+        Log.d("2", visibleData.toString());
+
     }
 
 }

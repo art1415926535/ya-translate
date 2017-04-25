@@ -4,57 +4,64 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.SearchView;
 import android.support.v7.widget.Toolbar;
+import android.support.v7.widget.helper.ItemTouchHelper;
 import android.view.MenuItem;
-import android.view.MotionEvent;
 import android.view.View;
-import android.widget.AdapterView;
-import android.widget.ListView;
+import android.widget.TextView;
 
-import com.art1415926535.ya_translate.models.Phrase;
+import com.art1415926535.ya_translate.DB.DbHelper;
 
 public class SavedPhrasesActivity extends AppCompatActivity
-        implements SearchView.OnQueryTextListener, ListView.OnTouchListener{
+        implements SearchView.OnQueryTextListener{
     // Declare Variables
-    ListView list;
-    ListViewAdapter adapter;
     SearchView editsearch;
-
-    float historicX = Float.NaN, historicY = Float.NaN;
-    static final int DELTA = 50;
-    enum Direction {LEFT, RIGHT;}
+    RecyclerView favoritiesRecyclerView;
+    PhrasesRecyclerAdapter phrasesRecyclerAdapter;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_saved_phrases);
 
-        // Locate the ListView in activity_saved_phrases.xml
-        list = (ListView) findViewById(R.id.searchable_list_view);
+        // Recycler View with history requests.
+        favoritiesRecyclerView = (RecyclerView) findViewById(R.id.favoritesRecycler);
+        favoritiesRecyclerView.setHasFixedSize(false);
 
-        // Pass results to ListViewAdapter Class
-        adapter = new ListViewAdapter(this);
+        // Use a linear layout manager.
+        RecyclerView.LayoutManager recyclerLayoutManager = new LinearLayoutManager(this);
+        favoritiesRecyclerView.setLayoutManager(recyclerLayoutManager);
 
-        // Binds the Adapter to the ListView
-        list.setAdapter(adapter);
+        // Set adapter with history data.
+        phrasesRecyclerAdapter = new PhrasesRecyclerAdapter(this,
+                new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        TextView topLang = (TextView) v.findViewById(R.id.topLang);
+                        TextView bottomLang = (TextView) v.findViewById(R.id.bottomLang);
 
+                        TextView fromText = (TextView) v.findViewById(R.id.fromText);
+                        TextView toText = (TextView) v.findViewById(R.id.toText);
 
-        list.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                Phrase entry = (Phrase) parent.getAdapter().getItem(position);
+                        Intent intent = new Intent();
+                        intent.putExtra("fromLangCode", topLang.getText().toString());
+                        intent.putExtra("toLangCode", bottomLang.getText().toString());
+                        intent.putExtra("fromText", fromText.getText().toString());
+                        intent.putExtra("toText", toText.getText().toString());
 
-                Intent intent = new Intent();
-                intent.putExtra("fromLangCode", entry.getFromLangCode());
-                intent.putExtra("toLangCode", entry.getToLangCode());
-                intent.putExtra("fromText", entry.getFromText());
-                intent.putExtra("toText", entry.getToText());
+                        setResult(RESULT_OK, intent);
+                        finish();
+                    }
+                },
+                DbHelper.TABLE_FAVOURITES);
 
-                setResult(RESULT_OK, intent);
-                finish();
-            }
-        });
+        favoritiesRecyclerView.setAdapter(phrasesRecyclerAdapter);
+        ItemTouchHelper.Callback callback = new MovieTouchHistoryHelper(phrasesRecyclerAdapter);
+        ItemTouchHelper helper = new ItemTouchHelper(callback);
+        helper.attachToRecyclerView(favoritiesRecyclerView);
 
         // Locate the EditText in activity_saved_phrases.xml
         editsearch = (SearchView) findViewById(R.id.search);
@@ -78,7 +85,7 @@ public class SavedPhrasesActivity extends AppCompatActivity
 
     @Override
     public boolean onQueryTextChange(String newText) {
-        adapter.filter(newText);
+        phrasesRecyclerAdapter.filter(newText);
         return false;
     }
 
@@ -93,28 +100,5 @@ public class SavedPhrasesActivity extends AppCompatActivity
                 break;
         }
         return true;
-    }
-
-    @Override
-    public boolean onTouch(View v, MotionEvent event) {
-        switch (event.getAction()) {
-            case MotionEvent.ACTION_DOWN:
-                historicX = event.getX();
-                historicY = event.getY();
-                break;
-
-            case MotionEvent.ACTION_UP:
-                if (event.getX() - historicX < -DELTA) {
-                    return true;
-                }
-                else if (event.getX() - historicX > DELTA) {
-                    return true;
-                }
-                break;
-
-            default:
-                return false;
-        }
-        return false;
     }
 }
