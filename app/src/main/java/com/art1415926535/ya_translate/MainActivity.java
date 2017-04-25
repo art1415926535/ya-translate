@@ -43,6 +43,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private TextView rightLang;
     private EditText editText;
     private TextView translatedText;
+    ImageButton addFavorite;
     private ConstraintLayout translatedTextConstraintLayout;
     private RecyclerView historyRecyclerView;
     private PhrasesRecyclerAdapter phrasesRecyclerAdapter;
@@ -75,12 +76,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 R.id.translatedTextConstraintLayout);
 
         ImageButton swapLanguages = (ImageButton) findViewById(R.id.swapLangs);
-        ImageButton addFavorite = (ImageButton) findViewById(R.id.addFavorite);
+        addFavorite = (ImageButton) findViewById(R.id.addFavorite);
         ImageButton clearEditText = (ImageButton) findViewById(R.id.clearEditText);
 
         swapLanguages.setOnClickListener(this);
         addFavorite.setOnClickListener(this);
         clearEditText.setOnClickListener(this);
+
+        addFavorite.setTag(R.drawable.ic_bookmark_border_black_24dp);
 
         leftLang.setText(preferences.getString("fromLang", "русский"));
         rightLang.setText(preferences.getString("toLang", "английский"));
@@ -95,6 +98,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
             @Override
             public void afterTextChanged(Editable s) {
+                if ((int) addFavorite.getTag() == R.drawable.ic_bookmark_red_24dp){
+                    // Add resource id for later check.
+                    addFavorite.setTag(R.drawable.ic_bookmark_border_black_24dp);
+                    addFavorite.setImageResource(R.drawable.ic_bookmark_border_black_24dp);
+                }
+
                 int len = s.toString().length();
 
                 if (len == 0 && translatedTextConstraintLayout.getVisibility() == View.VISIBLE){
@@ -379,6 +388,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 break;
 
             case R.id.addFavorite:
+                addFavorite.setImageResource(R.drawable.ic_bookmark_red_24dp);
+                // Add resource id for later check.
+                addFavorite.setTag(R.drawable.ic_bookmark_red_24dp);
+
                 // Save this phrase to database.
                 DataBase db = new DataBase(this, DbHelper.TABLE_FAVOURITES);
                 db.open();
@@ -455,14 +468,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             arrayAdapter.add(lang);
         }
 
-        // Dismiss alert.
-        builderSingle.setNegativeButton(R.string.dismiss, new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                dialog.dismiss();
-            }
-        });
-
         builderSingle.setAdapter(arrayAdapter, new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
@@ -479,13 +484,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     @Override
     protected void onStop() {
-        // Save languages preferences.
-        preferencesEditor = preferences.edit();
-        preferencesEditor.putString("fromLang", leftLang.getText().toString());
-        preferencesEditor.putString("toLang", rightLang.getText().toString());
+        if (! leftLang.getText().toString().equals(getString(R.string.auto_select_language))) {
+            // Save languages preferences.
+            preferencesEditor = preferences.edit();
+            preferencesEditor.putString("fromLang", leftLang.getText().toString());
+            preferencesEditor.putString("toLang", rightLang.getText().toString());
 
-        // Commit the edits.
-        preferencesEditor.apply();
+            // Apply the edits.
+            preferencesEditor.apply();
+        }
         super.onStop();
     }
 }

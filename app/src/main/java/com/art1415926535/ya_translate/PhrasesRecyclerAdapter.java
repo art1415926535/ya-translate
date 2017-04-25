@@ -3,7 +3,6 @@ package com.art1415926535.ya_translate;
 import android.content.Context;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -44,7 +43,6 @@ class PhrasesRecyclerAdapter extends RecyclerView.Adapter<PhrasesRecyclerAdapter
         visibleData = new ArrayList<>();
 
         visibleData.addAll(data);
-        Log.d("1", visibleData.toString());
     }
 
     void addItem(String fromLangCode, String fromText, String toLangCode, String toText) {
@@ -134,8 +132,6 @@ class PhrasesRecyclerAdapter extends RecyclerView.Adapter<PhrasesRecyclerAdapter
             }
         }
         notifyDataSetChanged();
-        Log.d("2", visibleData.toString());
-
     }
 
 }
