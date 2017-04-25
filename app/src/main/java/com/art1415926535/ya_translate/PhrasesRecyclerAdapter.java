@@ -60,12 +60,18 @@ class PhrasesRecyclerAdapter extends RecyclerView.Adapter<PhrasesRecyclerAdapter
 
             // Update row in database.
             db.updatePhrase(lastPhrase);
+
+            notifyItemChanged(0);
         } else {
             // Add new phrase.
             data.add(0, newPhrase);
             newPhrase.setId(db.createPhrase(newPhrase));
+
+            notifyItemInserted(0);
+            visibleData.clear();
+            visibleData.addAll(data);
         }
-        notifyDataSetChanged();
+
     }
 
     void removeItem(int position){
@@ -116,7 +122,7 @@ class PhrasesRecyclerAdapter extends RecyclerView.Adapter<PhrasesRecyclerAdapter
         return visibleData.size();
     }
 
-    public void filter(String text){
+    void filter(String text){
         text = text.toLowerCase(Locale.getDefault());
 
         visibleData.clear();

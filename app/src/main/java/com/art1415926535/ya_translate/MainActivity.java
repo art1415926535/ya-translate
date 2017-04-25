@@ -210,6 +210,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         editText.setText(data.getStringExtra("fromText"));
         translatedText.setText(data.getStringExtra("toText"));
 
+        addFavorite.setImageResource(R.drawable.ic_bookmark_red_24dp);
+        addFavorite.setTag(R.drawable.ic_bookmark_red_24dp);
     }
 
     /**
@@ -388,6 +390,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 break;
 
             case R.id.addFavorite:
+                if ((int) addFavorite.getTag() == R.drawable.ic_bookmark_red_24dp){
+                    // Skip double save.
+                    break;
+                }
                 addFavorite.setImageResource(R.drawable.ic_bookmark_red_24dp);
                 // Add resource id for later check.
                 addFavorite.setTag(R.drawable.ic_bookmark_red_24dp);
